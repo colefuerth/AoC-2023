@@ -9,12 +9,7 @@ from typing import List
 # for each line, find each integer in each line
 # if there is a symbol on either side (non-'.') then it is a part number and it is added to the sum
 
-dirs = (
-    (1, 0),
-    (0, 1),
-    (-1, 0),
-    (0, -1)
-)
+dirs = tuple(product([-1, 0, 1], repeat=2))
 
 add_coords = lambda x, y: (x[0] + y[0], x[1] + y[1])
 
@@ -23,37 +18,49 @@ def part1(f: List[str]) -> int:
     # then, each coordinate that that has a number in it can be mapped to that hash
     
     # build the tingy
-    coords = {
-        (x,y):f[x][y] if f[x][y] != '.' else None
+    symbols = {
+        (x,y)
         for x, y in product(range(len(f)), range(len(f[0])))
+        if f[x][y] not in '0123456789.'
     }
-    ints = {}  # each hash is mapped to an integer value for summing later
-    hist = {}  # each hash is mapped to a count of "hits", >0 means it is a part number
+    sum = 0
     for i, line in enumerate(f):
         for match in re.finditer(r'(\d+)', line):
-            h = hash(match)
-            ints[h] = int(match.group(1))
-            hist[h] = 0
             for coord in [(i, j) for j in range(match.start(), match.end())]:
-                coords[coord] = h
-    
-    # traverse the tingy
-    for coord in coords:
-        if isinstance(coords[coords[coord]], str):
-            # for each direction, traverse until either hitting a wall or another object
-            for d in dirs:
-                c = add_coords(c, d)
-                while c in coords:
-                    if coords[c] != None:
-                        if isinstance(coords[c], int):
-                            hist[coords[c]] += 1
-                        break
-    return sum([ints[h] for h, c in hist.items() if c > 0])
-            
-    # find the two hashes that have the same count
+                if any(add_coords(coord, d) in symbols for d in dirs):
+                    sum += int(match.group(1))
+                    break
+    return sum
 
+            
 def part2(f: List[str]) -> int:
-    pass
+    # find all the asterisks
+    gears = [
+        (x,y)
+        for x, y in product(range(len(f)), range(len(f[0])))
+        if f[x][y] == '*'
+    ]
+    # parse the ints and locations in the engine map
+    nums = {}  # map from coords to hash
+    ints = {}  # map from hash to ints
+    for i, line in enumerate(f):
+        for match in re.finditer(r'(\d+)', line):
+            for coord in [(i, j) for j in range(match.start(), match.end())]:
+                h = hash((i, match.start(), int(match.group(1))))
+                nums[coord] = h
+                ints[h] = int(match.group(1))
+    # figure out which asterisks are gears, and update the sum when they are found
+    sum = 0
+    for g in gears:
+        adj = []
+        for d in dirs:
+            dx = add_coords(g, d)
+            if dx in nums and nums[dx] not in adj:
+                adj.append(nums[dx])
+        if len(adj) == 2:
+            sum += ints[adj[0]] * ints[adj[1]]
+                
+    return sum
 
 
 if __name__ == '__main__':
