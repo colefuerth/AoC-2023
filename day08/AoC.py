@@ -38,7 +38,7 @@ if __name__ == '__main__':
     ]
     
     instructions = ['LR'.index(c) for c in f[0]]
-    nodes = {match[0]:tuple(match[1:]) for match in [re.findall(r'[0-9A-Z]+', line) for line in f[2:]]}
+    nodes = {match[0]:match[1:] for match in [re.findall(r'[0-9A-Z]+', line) for line in f[2:]]}
     
     print('Part 1:', part1(instructions, nodes))
     print('Part 2:', part2(instructions, nodes))
