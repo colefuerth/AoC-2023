@@ -20,8 +20,7 @@ if __name__ == '__main__':
     f = [
         l.strip()
         for l in open(fname, 'r').readlines()
-        if l.strip() != ''
     ]
 
-    print('Part 1:', part1(f))
-    print('Part 2:', part2(f))
+    print('Part 1:', part1(deepcopy(f)))
+    print('Part 2:', part2(deepcopy(f)))
